@@ -208,7 +208,7 @@ class Model(object):
 				self.loss = -tf.reduce_mean(
 					tf.log(tf.reduce_sum(tf.to_float(self.ans) * attn_dist, axis=-1) + tf.constant(0.00001))
 				)
-			with tf.variable_scope('correct_prediction'):
+			with tf.variable_scope('correct_prediction'): 
 				# correct prediction nums
 				self.correct_prediction = tf.reduce_sum(
 					tf.sign(tf.cast(tf.equal(tf.argmax(y_hat, 1),
