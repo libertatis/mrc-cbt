@@ -129,7 +129,7 @@ class Model(object):
                                    config.char_dim, \
                                    config.num_heads
 
-        with tf.variable_scope('Input_Embedding_Layer'):
+        with tf.variable_scope('Input_Embedding_Layer', regularizer=regularizer):
             # ******************** char embedding *********************
             # [batch_size, seq_len, word_len] -> [batch_size x seq_len, word_len, char_dim]
             ch_emb = tf.reshape(tf.nn.embedding_lookup(self.char_mat, self.ch),
@@ -171,7 +171,8 @@ class Model(object):
             print('highway, q_emb.shape: {}'.format(q_emb.shape))
             print('highway, c_emb.shape: {}'.format(c_emb.shape))
 
-            """ *************************************Encoer ****************************************"""
+        """ *************************************Encoer ****************************************"""
+		with tf.variable_scope('Encoder_Layer', regularizer=regularizer):
             # [N, 2d]
             self.q_enc = BiRNNEncoder(hidden_size=d, num_layers=1,
                                       name='q_enc')(q_emb, self.q_len, is_last_states=True)
@@ -184,35 +185,35 @@ class Model(object):
             print('self.c_enc shape: {}'.format(self.c_enc.shape))
 
 
-            """*************************************** Start ****************************************"""
-            with tf.variable_scope('Output_Layer'):
+        """*************************************** Start ****************************************"""
+		with tf.variable_scope('Output_Layer'):
 
-                with tf.variable_scope('attention'):
-                    # [N, PL]
-                    res = tf.matmul(tf.expand_dims(self.q_enc, -1), self.c_enc, adjoint_a=True, adjoint_b=True)
+			with tf.variable_scope('attention'):
+				# [N, PL]
+				res = tf.matmul(tf.expand_dims(self.q_enc, -1), self.c_enc, adjoint_a=True, adjoint_b=True)
 
-                    attn = tf.reshape(res, [-1, self.c_maxlen])
-                    attn_dist = tf.nn.softmax(mask_logits(attn, self.c_mask))
+				attn = tf.reshape(res, [-1, self.c_maxlen])
+				attn_dist = tf.nn.softmax(mask_logits(attn, self.c_mask))
 
-				# Attention sum
-                # y_hat = sum_probs_batch(self.cans, self.c, attn_dist)
+			# Attention sum
+			# y_hat = sum_probs_batch(self.cans, self.c, attn_dist)
+			with tf.variable_scope('attention_sum'):
+				# [N, 10, PL]
+				y_hat = tf.cast(self.cans, tf.float32) * \
+						tf.tile(tf.expand_dims(attn_dist, axis=1), [1, config.num_cans, 1])
+				y_hat = tf.reduce_sum(y_hat, axis=-1)   # [N, 10]
 
-                # [N, 10, PL]
-                y_hat = tf.cast(self.cans, tf.float32) * \
-                        tf.tile(tf.expand_dims(attn_dist, axis=1), [1, config.num_cans, 1])
-                y_hat = tf.reduce_sum(y_hat, axis=-1)   # [N, 10]
-
-
-                # - log loss
-                self.loss = -tf.reduce_mean(
-                    tf.log(tf.reduce_sum(tf.to_float(self.ans) * attn_dist, axis=-1) + tf.constant(0.00001))
-                )
-
-                # correct prediction nums
-                self.correct_prediction = tf.reduce_sum(
-                    tf.sign(tf.cast(tf.equal(tf.argmax(y_hat, 1),
-                                             tf.argmax(tf.cast(self.y_true, tf.float32), 1)), "float")))
-                # print('y_true.shape : {}'.format(self.y_true.shape))
+			with tf.variable_scope('loss'):
+				# - log loss
+				self.loss = -tf.reduce_mean(
+					tf.log(tf.reduce_sum(tf.to_float(self.ans) * attn_dist, axis=-1) + tf.constant(0.00001))
+				)
+			with tf.variable_scope('correct_prediction'):
+				# correct prediction nums
+				self.correct_prediction = tf.reduce_sum(
+					tf.sign(tf.cast(tf.equal(tf.argmax(y_hat, 1),
+											 tf.argmax(tf.cast(self.y_true, tf.float32), 1)), "float")))
+				# print('y_true.shape : {}'.format(self.y_true.shape))
 
             """************************************** End ***************************************"""
             # add l2 normalization to loss
