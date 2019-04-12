@@ -116,12 +116,13 @@ def train(config):
                     else:
                         patience = 0
                         best_acc = max(best_acc, val_acc)
+                        # Save Model, keep top 5 best models.
+                        filename = os.path.join(
+                            config.save_dir, 'model_{}_val-acc_{}.ckpt'.format(global_step, best_acc))
+                        saver.save(sess, filename)
 
                     writer.flush()
-
-                    # Save Model
-                    filename = os.path.join(config.save_dir, 'model_{}.ckpt'.format(global_step))
-                    saver.save(sess, filename)
+                    
 
 def validate(config, model, sess, dev_total, data_type, handle, str_handle):
 
@@ -173,7 +174,7 @@ def test(config):
         test_batch = get_dataset(config.test_record_file, get_record_parser(
             config, is_test=True), config).make_one_shot_iterator()
 
-        model = ASReader(config, test_batch, word_mat, char_mat, trainable=False, graph=g)
+        model = Model(config, test_batch, word_mat, char_mat, trainable=False, graph=g)
 
         sess_config = tf.ConfigProto(allow_soft_placement=True)
         sess_config.gpu_options.allow_growth = True
