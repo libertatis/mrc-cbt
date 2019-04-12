@@ -199,8 +199,8 @@ class Model(object):
 			# y_hat = sum_probs_batch(self.cans, self.c, attn_dist)
 			with tf.variable_scope('attention_sum'):
 				# [N, 10, PL]
-				y_hat = tf.cast(self.cans, tf.float32) * \
-						tf.tile(tf.expand_dims(attn_dist, axis=1), [1, config.num_cans, 1])
+				y_hat = tf.cast(self.cans, tf.float32) * \ 
+							tf.tile(tf.expand_dims(attn_dist, axis=1), [1, config.num_cans, 1])
 				y_hat = tf.reduce_sum(y_hat, axis=-1)   # [N, 10]
 
 			with tf.variable_scope('loss'):
@@ -222,7 +222,7 @@ class Model(object):
                  l2_loss = tf.contrib.layers.apply_regularization(regularizer, variables)
                  self.loss += l2_loss
             
-             if config.decay is not None:
+			if config.decay is not None:
                  self.var_ema = tf.train.ExponentialMovingAverage(config.decay)
                  ema_op = self.var_ema.apply(tf.trainable_variables())
                  with tf.control_dependencies([ema_op]):
