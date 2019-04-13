@@ -22,7 +22,7 @@ step 0:
 				cbtest_CN_valid_2000ex.txt
 				cbtest_CN_test_2500ex.txt
 	datasets/glove/
-				glove.840B.300d-char.txt
+				glove.840B.300d.txt
 
 Step 1:
 
