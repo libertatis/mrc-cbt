@@ -16,11 +16,23 @@ from layers import BiRNNEncoder
 
 # word : 861,376, char: 1,281,536, 1.49
 
-# NE word : 9k steps, valid acc: 77.12, test acc: 72.05, train acc: 69.68
-# CN word : 9k steps, valid acc: 71.88, test acc: 69.03, train acc: 64.25
+# original paper: 
+# CBT-NE: valid acc: 73.8, test acc: 68.6
+# CBT-CN: valid acc: 68.8, test acc: 63.4
 
-# NE char : 9.5k steps, valid acc: 75.84, test acc: 71.44, train acc:67.40
-# CN char : 9.5k steps, valid acc: 70.88, test acc: 69.60, train acc: 62.88
+# Our re-implementation:
+# NE word : 6.5k steps, valid acc: 78.03, test acc: 71.68
+# CN word : 7.5k steps, valid acc: 72.83, test acc: 69.56
+
+# NE char : 13k steps, valid acc: 78.38, test acc: 72.09
+# CN char : 17.5k steps, valid acc: 72.48 test acc: 70.48
+
+# Our re-implementation with warmup and picewise-constant learning rate decay scheduler:
+# NE word : 10k steps, valid acc: 78.53, test acc: 73.58
+# CN word : 16k steps, valid acc: 73.58, test acc: 71.33
+
+# NE char : 9.5k steps, valid acc: 80.09, test acc: 73.95
+# CN char : 15k steps, valid acc: 73.83 test acc: 72.42
 
 # ASReader Model
 class Model(object):
